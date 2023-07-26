@@ -20,23 +20,17 @@ namespace VivenciarManager.Infra.Auth
         private SignInManager<ApplicationUser> _signInManager;
         private SigningConfigurations _signingConfigurations;
         private TokenConfigurations _tokenConfigurations;
-        private readonly IMemoryCache _cache;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        
         public AccessManager(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             SigningConfigurations signingConfigurations,
-            TokenConfigurations tokenConfigurations,
-            IMemoryCache cache,
-            IHttpContextAccessor httpContextAccessor)
+            TokenConfigurations tokenConfigurations)
         {
-            _cache = cache;
             _userManager = userManager;
             _signInManager = signInManager;
             _signingConfigurations = signingConfigurations;
             _tokenConfigurations = tokenConfigurations;
-            _cache = cache;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ApplicationUser> CreateUser(UserLogin user, string? role = null)
@@ -130,48 +124,6 @@ namespace VivenciarManager.Infra.Auth
                 Token = token,
                 Message = "OK"
             };
-        }
-        public void DeactivateCurrent(string user)
-        {
-            DeactivateToken(GetCurrentTokenFromHeader(), user);
-        }
-        public void DeactivateToken(string token, string user)
-        {
-            var options = new MemoryCacheEntryOptions()
-                    .SetAbsoluteExpiration(
-                            TimeSpan.FromSeconds(_tokenConfigurations.Seconds));
-
-            _cache.Set(user, token, options);
-        }
-        private string GetCurrentTokenFromHeader()
-        {
-            var authorizationHeader = _httpContextAccessor
-                .HttpContext.Request.Headers["authorization"];
-
-            return authorizationHeader == StringValues.Empty
-                ? string.Empty
-                : authorizationHeader.Single().Split(" ").Last();
-        }
-        public bool IsCurrentActiveToken(string user)
-        {
-            return IsActive(GetCurrentTokenFromHeader(), user);
-        }
-        private bool IsActive(string token, string userLogged)
-        {
-            if (string.IsNullOrEmpty(userLogged))
-                return true;
-
-            if (_cache.TryGetValue(userLogged, out string tokenStored))
-            {
-                tokenStored = _cache.Get<string>(userLogged);
-
-                if (tokenStored is null)
-                    return true;
-
-                return !tokenStored.Equals(token);
-            }
-
-            return true;
         }
     }
 }
