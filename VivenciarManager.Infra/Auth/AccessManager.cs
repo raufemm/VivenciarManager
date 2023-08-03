@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Primitives;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -31,31 +29,6 @@ namespace VivenciarManager.Infra.Auth
             _tokenConfigurations = tokenConfigurations;
         }
 
-        public async Task<ApplicationUser> CreateUser(UserLogin user, string? role = null)
-        {
-            ApplicationUser newUser = new ApplicationUser()
-            {
-                Email = user.Email,
-                UserName = user.Email,
-                EmailConfirmed = true,
-            };
-
-            var usuarioExistente = await GetUser(newUser.Email);
-
-            if (usuarioExistente is null)
-            {
-                var newUserResponse = await _userManager.CreateAsync(newUser, user.Password);
-
-                if (newUserResponse.Succeeded)
-                {
-                    await _userManager.AddToRoleAsync(newUser, string.IsNullOrEmpty(role) ? Roles.ROLE_DEFAULT : role);
-                }
-
-                return newUser;
-            }
-
-            return null;
-        }
         public async Task<ApplicationUser> GetUser(string userEmail)
         {
             ApplicationUser user = new();
@@ -65,7 +38,7 @@ namespace VivenciarManager.Infra.Auth
 
             return user;
         }
-        public async Task<ApplicationUser> ValidateCredentials(UserLogin user)
+        public async Task<ApplicationUser> ValidateCredentials(UserLoginInputModel user)
         {
             ApplicationUser identityUser = await GetUser(user.Email);
 

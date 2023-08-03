@@ -2,7 +2,7 @@
 
 namespace VivenciarManager.Domain.Model
 {
-    public class UserLogin
+    public class UserLoginInputModel
     {
         [Required]
         [EmailAddress]
